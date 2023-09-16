@@ -51,15 +51,17 @@ class GFANLayer(nn.Module):
 		embed = self.getembeds(nodes).t()
 		pos_nodes = [i for i,x in enumerate(labels) if x == 0]
 		neg_nodes = [i for i,x in enumerate(labels) if x == 1]
+		pos_x = [1 for i,x in enumerate(labels) if x == 0]
+		neg_x = [0.5 for i,x in enumerate(labels) if x == 1]
 		embed_pos = embed[pos_nodes]
 		embed_neg = embed[neg_nodes]
 		svdd_loss_pos = torch.zeros(len(pos_nodes)).cuda(1)
 		svdd_loss_neg = torch.zeros(len(neg_nodes)).cuda(1)
 		for i in range(len(pos_nodes)):
-			svdd_loss_pos[i] = torch.norm(embed_pos[i] - center, 2)
+			svdd_loss_pos[i] = torch.norm(embed_pos[i] - center, 2) + posx[i]
 		loss_pos = torch.mean(svdd_loss_pos)
 		for i in range(len(neg_nodes)):
-			svdd_loss_neg[i] = torch.norm(embed_neg[i] - center, 2)
+			svdd_loss_neg[i] = torch.norm(embed_neg[i] - center, 2) + negx[i]
 		loss_neg = torch.mean(svdd_loss_neg)
 		margin = torch.sqrt(1/(loss_neg-loss_pos)**2)
 		loss = loss_pos + Alpha*margin
